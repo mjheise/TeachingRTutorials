@@ -77,9 +77,7 @@ dat %>%
   rename(subNo = subj_id,
          visit = trial,
          clinicNo = clinic_id) %>%
-  select(-item_id) %>%
-  mutate(covidBinary = case_when(covidOnset == 'pre' ~ 0,
-                                 covidOnset == 'post' ~ 1)) -> dat
+  select(-item_id) -> dat
 
 # Create a binary variable (0/1) for COVID-onset, where 0 is pre-COVID and 1 
 # is post-COVID, name variable covidBinary

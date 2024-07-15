@@ -71,7 +71,7 @@ create_pptx <- function(plt = last_plot(), path = file.choose(), width = 0, heig
 
 #### 1. READ IN AND TIDY DATA ####
 # Read in data
-dat <- read.csv('C:/Users/mheise/Box/SpinelliLab/Projects/01_GeneralProjectMaterials/StatisticsResources/RWorkshops_Summer2024/MixedEffects/LMETutorialData.csv')
+dat <- read.csv('')
 
 # Rename variables:
 dat %>%
@@ -81,14 +81,6 @@ dat %>%
   select(-item_id) %>%
   mutate(covidBinary = case_when(covidOnset == 'pre' ~ 0,
                                  covidOnset == 'post' ~ 1)) -> dat
-
-# Create a binary variable (0/1) for COVID-onset, where 0 is pre-COVID and 1 
-# is post-COVID, name variable covidBinary
-#
-#
-#
-
-  
 
 #### 2. FIT INTERRUPTED TIME SERIES ####
 # Reminder: here was our LME model from last session:
