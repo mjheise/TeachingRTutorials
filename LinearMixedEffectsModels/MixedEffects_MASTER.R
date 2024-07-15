@@ -209,7 +209,7 @@ ggplot(data = dat, aes(x = visit, y = audit)) +
   theme_minimal()
 
 # Visualize a subset of data
-# For large datasets, it is helpful to take a randomfacet_wrap by subject
+# For large datasets, it is helpful to take a random sample to facet_wrap by subject
 # Take a random sample of 10 IDs
 ids <- sample(dat$subNo, 10)
 
@@ -221,7 +221,7 @@ dat %>%
 ggplot(data = datPlot, aes(x = visit, y = audit)) +
   geom_point(position = 'jitter', alpha = .7, size = 2) +
   geom_smooth(method = 'lm', se = FALSE) +
-  labs(y = 'AUDIT scores over time by sex', x = 'Visit number', title = 'AUDIT over Time') +
+  labs(y = 'AUDIT scores over time', x = 'Visit number', title = 'AUDIT over Time') +
   scale_x_continuous(breaks=seq(from = 0, to = 10, by = 1)) +
   theme_minimal() + 
   facet_wrap(~subNo)
