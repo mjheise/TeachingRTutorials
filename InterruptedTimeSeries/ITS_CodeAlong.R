@@ -35,6 +35,7 @@ library(car) # v.3.1-2, levene's test
 library(lattice) # v.0.22-5, qqmath
 library(officer) # V.0.3.15, powerpoint ggplot
 library(rvg) # v. 0.2.5, powerpoint ggplot
+library(gtsummary) # v.1.7.2, tbl_regression function
 
 # Functions
 # Save ggplot object in powerpoint slide
@@ -71,21 +72,21 @@ create_pptx <- function(plt = last_plot(), path = file.choose(), width = 0, heig
 
 #### 1. READ IN AND TIDY DATA ####
 # Read in data
+dat <- read.csv('')
 
-# Rename variables
+# Rename variables:
 dat %>%
   rename(subNo = subj_id,
          visit = trial,
          clinicNo = clinic_id) %>%
   select(-item_id) -> dat
 
-# Create a binary variable (0/1) for COVID-onset, where 0 is pre-COVID and 1 
-# is post-COVID, name variable covidBinary
+# Create a new variable called covidBinary in which visits 1-5 have a value of 0,
+# and visits 6-10 have a value of 1
 #
 #
 #
 
-  
 
 #### 2. FIT INTERRUPTED TIME SERIES ####
 # Reminder: here was our LME model from last session:
@@ -102,11 +103,15 @@ summary(fit.ITS)
 fit.ITS %>%
   tbl_regression(exp = T)
 
+# Summarise dat to see if the raw means changed over COVID
+dat %>%
+  group_by(covidOnset) %>%
+  summarise(m = mean(audit, na.rm = T))
+
 # How would we interpret this output?
-# There's a significant effect of COVID/treatment, where alcohol use increased
-# post-COVID. However, there is no interaction between COVID and time,
-# so the slope of alcohol use increasing stayed the same pre/post COVID but there
-# was a jump post-COVID-onset.
+#
+#
+#
 
 # Because there's a difference across sex, we would also look if there was potentially
 # an interaction between sex, COVID, and time.
@@ -126,21 +131,21 @@ dat %>%
   drop_na() -> datComplete
 
 # Fit the linear mixed-effects model
-fit.sexComplete <- lmer(audit ~ visit*covidBinary*sex + age + (1|subNo) + (1|clinicNo),  data = datComplete)
-summary(fit.sexComplete)
+fit.ITSComplete <- lmer(audit ~ visit*covidBinary + sex + age + (1|subNo) + (1|clinicNo),  data = datComplete)
+summary(fit.ITSComplete)
 
 # Test model assumptions:
 # - Linearity (visual inspection)
-plot(resid(fit.sexComplete), datComplete$audit) 
+plot(resid(fit.ITSComplete), datComplete$audit) 
 
 # - Normal distribution of residuals (visual inspection)
-qqmath(fit.sexComplete) 
+qqmath(fit.ITSComplete) 
 
 shapiro.test(dat$audit)
 
 # - Homoscedasticity (we test for equal variance for each sex)
 # Levene's test
-leveneTest(residuals(fit.sexComplete) ~ datComplete$sex)
+leveneTest(residuals(fit.ITSComplete) ~ datComplete$sex)
 
 # How do these tests of assumptions compare to last week's model (fit.LME) that 
 # did not include an interaction between time*treatment?
@@ -170,13 +175,16 @@ ggplot(data = dat, aes(x = visit, y = audit)) +
   geom_smooth(aes(fill = sex, color = sex), alpha = .5, method = 'lm', linetype = 1, size = 1, data = subset(dat, covidBinary == 1)) +
   labs(y = 'AUDIT scores over time by sex', x = 'Visit number', title = 'AUDIT over Time') +
   scale_x_continuous(breaks=seq(from = 0, to = 10, by = 1)) +
-  theme_minimal()
+  theme_minimal() +
+  facet_wrap(~sex)
 
 # If there's time... use fill and color to edit Plot 2 :)
 # You can use https://htmlcolorcodes.com/ to specify your color using a hex code
+# 
 #
 #
-#
+
+
 
 # Save to powerpoint by running the function create_pptx above
 # Save one of the plots above as an object titled "plot"
@@ -191,6 +199,6 @@ pptx_doc <- ph_with(pptx_doc, dml(ggobj = plot), location = ph_location_fullsize
 
 # Save the PowerPoint document
 # Rename your powerpoint presentation below with your name
-# print(pptx_doc, target = "ITSPlot.pptx")
+print(pptx_doc, target = "ITSPlot.pptx")
 
 

@@ -35,6 +35,8 @@ library(car) # v.3.1-2, levene's test
 library(lattice) # v.0.22-5, qqmath
 library(officer) # V.0.3.15, powerpoint ggplot
 library(rvg) # v. 0.2.5, powerpoint ggplot
+library(gtsummary) # v.1.7.2, tbl_regression function
+library(emmeans) # v.1.8.9, marginal means comparison
 
 # Functions
 # Save ggplot object in powerpoint slide
@@ -82,6 +84,7 @@ dat %>%
   mutate(covidBinary = case_when(covidOnset == 'pre' ~ 0,
                                  covidOnset == 'post' ~ 1)) -> dat
 
+
 #### 2. FIT INTERRUPTED TIME SERIES ####
 # Reminder: here was our LME model from last session:
 fit.LME <- lmer(audit ~ sex + age + visit + (1|subNo) + (1|clinicNo),  data = dat)
@@ -96,6 +99,11 @@ summary(fit.ITS)
 # You can also print a formatted table with odds ratio
 fit.ITS %>%
   tbl_regression(exp = T)
+
+# Summarise dat to see if the raw means changed over COVID
+dat %>%
+  group_by(covidOnset) %>%
+  summarise(m = mean(audit, na.rm = T))
 
 # How would we interpret this output?
 # There's a significant effect of COVID/treatment, where alcohol use increased
@@ -121,21 +129,21 @@ dat %>%
   drop_na() -> datComplete
 
 # Fit the linear mixed-effects model
-fit.sexComplete <- lmer(audit ~ visit*covidBinary*sex + age + (1|subNo) + (1|clinicNo),  data = datComplete)
-summary(fit.sexComplete)
+fit.ITSComplete <- lmer(audit ~ visit*covidBinary + sex + age + (1|subNo) + (1|clinicNo),  data = datComplete)
+summary(fit.ITSComplete)
 
 # Test model assumptions:
 # - Linearity (visual inspection)
-plot(resid(fit.sexComplete), datComplete$audit) 
+plot(resid(fit.ITSComplete), datComplete$audit) 
 
 # - Normal distribution of residuals (visual inspection)
-qqmath(fit.sexComplete) 
+qqmath(fit.ITSComplete) 
 
 shapiro.test(dat$audit)
 
 # - Homoscedasticity (we test for equal variance for each sex)
 # Levene's test
-leveneTest(residuals(fit.sexComplete) ~ datComplete$sex)
+leveneTest(residuals(fit.ITSComplete) ~ datComplete$sex)
 
 # How do these tests of assumptions compare to last week's model (fit.LME) that 
 # did not include an interaction between time*treatment?
@@ -165,21 +173,20 @@ ggplot(data = dat, aes(x = visit, y = audit)) +
   geom_smooth(aes(fill = sex, color = sex), alpha = .5, method = 'lm', linetype = 1, size = 1, data = subset(dat, covidBinary == 1)) +
   labs(y = 'AUDIT scores over time by sex', x = 'Visit number', title = 'AUDIT over Time') +
   scale_x_continuous(breaks=seq(from = 0, to = 10, by = 1)) +
-  theme_minimal()
+  theme_minimal() +
+  facet_wrap(~sex)
 
 # If there's time... use fill and color to edit Plot 2 :)
 # You can use https://htmlcolorcodes.com/ to specify your color using a hex code
-ggplot(data = dat, aes(x = visit, y = audit)) +
-  geom_point(position = 'jitter', alpha = .8, size = 2, color = '#ABFF2B') +
+plot <- ggplot(data = dat, aes(x = visit, y = audit)) +
+  geom_point(position = 'jitter', alpha = .8, size = 2, shape = 2, color = '#ABFF2B') +
   geom_smooth(alpha = .5, method = 'lm', linetype = 1, color = 'green', fill = 'lightblue', size = 1, data = subset(dat, covidBinary == 0)) + 
   geom_smooth(alpha = .5, method = 'lm', linetype = 1, color = 'green', fill = 'lightblue', size = 1, data = subset(dat, covidBinary == 1)) +
   labs(y = 'AUDIT scores over time', x = 'Visit number', title = 'AUDIT over Time') +
   scale_x_continuous(breaks=seq(from = 0, to = 10, by = 1)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = .5))
-#
-#
-#
+
 
 # Save to powerpoint by running the function create_pptx above
 # Save one of the plots above as an object titled "plot"
@@ -194,6 +201,6 @@ pptx_doc <- ph_with(pptx_doc, dml(ggobj = plot), location = ph_location_fullsize
 
 # Save the PowerPoint document
 # Rename your powerpoint presentation below with your name
-# print(pptx_doc, target = "ITSPlot.pptx")
+print(pptx_doc, target = "ITSPlot.pptx")
 
 
