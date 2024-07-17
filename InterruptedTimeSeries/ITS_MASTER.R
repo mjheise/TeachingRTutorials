@@ -36,7 +36,6 @@ library(lattice) # v.0.22-5, qqmath
 library(officer) # V.0.3.15, powerpoint ggplot
 library(rvg) # v. 0.2.5, powerpoint ggplot
 library(gtsummary) # v.1.7.2, tbl_regression function
-library(emmeans) # v.1.8.9, marginal means comparison
 
 # Functions
 # Save ggplot object in powerpoint slide
